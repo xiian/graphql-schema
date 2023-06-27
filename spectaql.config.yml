@@ -1,0 +1,35 @@
+# Environment variable substitution will be performed by SpectaQL on all strings encountered
+
+spectaql:
+  targetDir: docs
+  oneFile: false
+  themeDir: spectaql
+
+introspection:
+  schemaFile: schema.graphql
+  removeTrailingPeriodFromDescriptions: true
+  hideUnionTypesOfUndocumentedType: false
+  hideFieldsOfUndocumentedType: false
+  hideInputFieldsOfUndocumentedType: false
+  hideArgsOfUndocumentedType: false
+  # Throws a TypeError: Cannot read properties of undefined (reading 'example') error
+#  hideUnusedTypes: false
+
+info:
+  # Tries to adhere to OpenAPI Specification https://swagger.io/specification/#info-object
+  # Will be used to populate the Welcome section of the output
+
+  title: Skillshare GraphQL
+  description: |
+    Documentation of the Skillshare GraphQL API
+    <br />
+    Generated at ${{BUILD_TIME}}
+
+  x-introItems:
+    - title: Repository
+      url: https://github.com/${{REPO}}/
+    - title: Build Commit
+      url: https://github.com/${{REPO}}/tree/${{GIT_SHA}}
+
+  # If not using introspection.url OR servers[], you need to provide x-url
+  x-url: https://api.skillshare.com/graphql

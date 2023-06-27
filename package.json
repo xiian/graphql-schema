@@ -1,0 +1,10 @@
+{
+  "name": "graphql-schema",
+  "version": "1.0.0",
+  "devDependencies": {
+    "graphql": "^16.7.1"
+  },
+  "dependencies": {
+    "spectaql": "^2.3.0"
+  }
+}
