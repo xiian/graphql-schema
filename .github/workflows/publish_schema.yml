@@ -1,0 +1,49 @@
+name: "Publish Schema"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build_schema:
+    name: "Build Schema"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get current timestamp
+        id: date
+        run: |
+          echo "tag=$(TZ=America/New_York date +'%Y-%m-%d_%H%M%S_%Z')" >> $GITHUB_OUTPUT
+          echo "string=$(TZ=America/New_York date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: PhilippS93/merge_graphql_schema-action@v1.8
+        id: mergeSchema
+        with:
+          path: './schema/**/*.graphql'
+      - name: Write to File
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: schema.graphql
+          contents: ${{steps.mergeSchema.outputs.fileContent}}
+
+      - name: Create Release
+        id: createRelease
+        uses: ncipollo/release-action@v1.13.0
+        with:
+         allowUpdates: true
+         replacesArtifacts: true
+         makeLatest: true
+         generateReleaseNotes: true
+         artifacts: schema.graphql
+         artifactContentType: text/plain
+         token: ${{github.token}}
+         commit: ${{github.sha}}
+         name: "${{steps.date.outputs.string}}"
+         body: "Generated on ${{steps.date.outputs.string}}"
+         tag: "${{steps.date.outputs.tag}}"
