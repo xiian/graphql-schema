@@ -1,0 +1,65 @@
+name: Deploy documentation to GH Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get current timestamp
+        id: date
+        run: |
+          echo "tag=$(TZ=America/New_York date +'%Y-%m-%d_%H%M%S_%Z')" >> $GITHUB_OUTPUT
+          echo "string=$(TZ=America/New_York date +'%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: PhilippS93/merge_graphql_schema-action@v1.8
+        id: mergeSchema
+        with:
+          path: './schema/**/*.graphql'
+      - name: Write to File
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: schema.graphql
+          contents: ${{steps.mergeSchema.outputs.fileContent}}
+
+      - name: Install packages
+        uses: bahmutov/npm-install@v1
+
+      - run: npx spectaql -c spectaql.config.yml
+        env:
+          BUILD_TIME: ${{steps.date.outputs.string}}
+          GIT_SHA: ${{github.sha}}
+          REPO: ${{github.repository}}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'docs'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
