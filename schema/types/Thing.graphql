@@ -1,0 +1,8 @@
+"""A thing that exists"""
+type Thing {
+    "The ID of the thing that exists"
+    id: ID!
+
+    "The name of the thing that exists."
+    name: String!
+}
